@@ -1,0 +1,23 @@
+{
+    "name": "fhpdev/pintura-paintshot",
+    "authors": [
+        {
+            "name": "Fernando H. Pereira",
+            "email": "fhpdev@gmail.com",
+            "homepage": "https://fernandofhp.online"
+        }
+    ],
+    "description": "Comando CLI para pintura de botões usando bin/magento for Magento 2",
+    "require": {
+        "php": "7.0.2|7.0.4|~7.0.6|~7.1.0",
+        "magento/magento-composer-installer": "*"
+    },    
+    "type": "magento2-module",
+    "version": "1.0.0",
+    "autoload": {       
+        "psr-4": {
+            "Fhpdev\\Pintura\\": ""
+        },
+        "files": [ "registration.php" ]
+    }
+}
