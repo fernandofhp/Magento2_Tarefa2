@@ -17,6 +17,7 @@ class Paintshot extends Command
         parent::__construct();
     }   
 
+    /*
     public function mudacor($cor, $storeId){ // storeId = loja
         $tipo = '@button-primary__colo';
         $array = [];
@@ -62,7 +63,7 @@ class Paintshot extends Command
             //throw $th;
         }
 
-    }
+    } */
 
     protected function configure(){        
         $options = [
