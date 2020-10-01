@@ -2,6 +2,6 @@
 use Magento\Framework\Component\ComponentRegistrar;
 ComponentRegistrar::register(
     ComponentRegistrar::MODULE, 
-    'FHPdev_Pintura', 
+    'Fhpdev_Pintura', 
     __DIR__
 );
