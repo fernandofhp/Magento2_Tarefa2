@@ -1,0 +1,302 @@
+﻿0. Instalação do magento2
+   
+Modulo Pintura
+1. Criei um novo módulo no magento2
+  1.1 Criei a estrutura de pastas do meu módulo dentro de app/code
+  1.2 Fhpdev/Pintura ==> pasta com o nome do Modulo
+  1.3 Fhpdev/Pintura/registration.php ==> arquivo php que registra do meu Modulo
+  1.4 Fhpdev/Pintura/composer.json ==> arquivo json para invocar por composer
+  1.5 Fhpdev/Pintura/etc ==> pasta obrigatóira para informações e configurações
+  1.6 Fhpdev/Pintura/etc/di.xml ==> arquivo de injecao de dependencias do meu Modulo
+  1.7 Fhpdev/Pintura/etc/module.xml ==> arquivo com informações básicas do meu Modulo
+  1.8 Codifiquei Fhpdev/Pintura/registration.php com:
+    //---------------------------------------------------
+    <?php
+      use Magento\Framework\Component\ComponentRegistrar;
+      ComponentRegistrar::register(
+          ComponentRegistrar::MODULE, 
+          'Fhpdev_Paintshot', 
+          __DIR__
+      );
+    //---------------------------------------------------
+  1.9 Codifiquei Fhpdev/Pintura/etc/di.xml com:
+    //---------------------------------------------------
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Comandos do console -->
+    <type name="Magento\Framework\Console\CommandList">        
+        <arguments>                          
+            <argument name="commands" xsi:type="array">
+                <item name="Fhpdev_Paintshot" xsi:type="object">
+                    Fhpdev\Pintura\Console\Command\Paintshot
+                </item>
+            </argument>            
+        </arguments>           
+    </type>
+    <!-- Outras partes do modulo -->
+</config>
+    //---------------------------------------------------
+  1.10 Codifiquei Fhpdev/Pintura/etc/module.xml com:
+    //---------------------------------------------------
+    <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+            <module name="Fhpdev_Paintshot"></module>
+    </config>
+    //---------------------------------------------------
+  1.11 Codifiquei o Composer.json do meu módulo:
+  //---------------------------------------------------
+  {
+      "name": "fhpdev/pintura-paintshot",
+      "authors": [
+          {
+              "name": "Fernando H. Pereira",
+              "email": "fhpdev@gmail.com",
+              "homepage": "https://fernandofhp.online"
+          }
+      ],
+      "description": "Comando CLI para pintura de botões usando bin/magento for Magento 2",
+      "require": {
+          "php": "7.0.2|7.0.4|~7.0.6|~7.1.0",
+          "magento/magento-composer-installer": "*"
+      },    
+      "type": "magento2-module",
+      "version": "1.0.0",
+      "autoload": {       
+          "psr-4": {
+              "Fhpdev\\Pintura\\": ""
+          },
+          "files": [ "registration.php" ]
+      }
+  }
+  //---------------------------------------------------
+  1.13 Criei uma classe de comando  
+        Fhpdev\Pintura\Console\Command\Paintshot.php:
+  //---------------------------------------------------
+  <?php
+namespace Fhpdev\Pintura\Console\Command;
+
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+//use Magento\Framework\Css\PreProcessor\Adapter\Less\Processor;
+
+class Paintshot extends Command
+{
+    const COR = 'cor';
+    const LOJA = 'loja';     
+    
+    public function __construct() {
+        parent::__construct();
+    }   
+
+    public function mudacor($cor, $storeId){ // storeId = loja
+        $tipo = '@button-primary__colo';
+        $array = [];
+        $array['themeColor'] = "#$cor";
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        $store = $om->get('\Magento\Store\Model\StoreManagerInterface')->getStore($storeId);
+        if(!$store->isActive())
+            return;        
+        $storeCode = $store->getCode();
+        $str1 = '_'.$storeCode;
+        $str2 = 'frontend'.$str1.'.css'; // tipo codigo da loja e css
+        $configData = $om->get('Magento\Framework\View\Page\Config');
+        //$str3 = $configData->getCssConfigDir().$str2;  // acho que ok
+        $str4 = 'Pintura/css/frontend.phtml';        
+        //$logger = $om->get('Psr\Log\LoggerInterface');
+        //obter caminho de arquivo
+        $asset = \Magento\Framework\View\Asset\Repository::createAsset($str4);
+        //$asset = $om->get('Magento\Framework\View\Asset\Source'); // idea pegar path da loja[id]
+        // $assetpath = $objectManager
+        //         ->get('\Magento\Store\Model\StoreManagerInterface')
+        //             ->load($id);
+        $path = $asset->getPath();
+        //parser
+        try {
+            $parser = new \Less_Parser(
+                [ 'relativeUrls' => false,
+                    'compress' => $this->appState->getMode() !== State::MODE_DEVELOPER
+                ]
+            );
+            $content = $asset->getContent($asset);
+            if (trim($content) === '') {
+                return '';
+            }
+            $temp = new Magento\Framework\Css\PreProcessor\File\Temporary;
+            $tmpFilePath = $temp->createFile($path, $content);
+            gc_disable();
+            $parser->parseFile($tmpFilePath, '');
+            $parser->ModifyVars($array); //codigo da Pranjali Goel [webkul]
+            $content = $parser->getCss();
+            gc_enable();
+            return $content;
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+
+    }
+
+    protected function configure(){        
+        $options = [
+			new InputOption(
+				self::COR,
+				null,
+				InputOption::VALUE_REQUIRED,
+				'cor'
+            ),
+			new InputOption(
+				self::LOJA,
+				null,
+				InputOption::VALUE_REQUIRED,
+				'loja'
+            )
+        ];        
+        $this->setName('fhpdev:paintshot') 
+            ->setDescription('Comando CLI para pintura de botões usando bin/magento for Magento 2')
+                ->setDefinition($options);
+        parent::configure();
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output){          
+        if ($cor = $input->getOption(self::COR)) {
+           // testa se cor tem 6 digitos (2 para cada canal RGB)
+           // e se todos os dígitos são números hexadecimais
+            if(!((strlen($cor) == 6) && (ctype_xdigit($cor)))){ 
+                $output->writeln('<error> ERRO: Formato da cor não aceito </>');
+                $output->writeln('<error> Utilize 6 digitos hexadecimais (HEX color) </>');
+                $output->writeln('<error> Exemplo: 0F5E4D </>');
+                return $this;
+            }
+        } else {
+            $cor = 'CCCCCC'; //Cor padrão cinza RGB (204,204,204)
+        }
+        if ($loja = $input->getOption(self::LOJA)) {    
+            //$repo_lojas = new Lojas();
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $lojas_ = $objectManager->get('\Magento\Store\Model\StoreManagerInterface');
+            $tab_lojas = $lojas_->getStores();  // $this->_storeManager
+            //$this->_storeManager->getStore()->getId();
+            // testa se a loja existe 
+            $ids_existentes = '(';
+            $existe = false;
+            //$tab_lojas = $repo_lojas->getList();
+            foreach ($tab_lojas as $reg_loja) {
+                $id_loja = $reg_loja["store_id"];
+                $ids_existentes .= " $id_loja";
+                if($loja == $id_loja){
+                    $existe = true; 
+                    break; //encurtando a história...
+                }
+            }
+            $ids_existentes .= ')';
+            if (!$existe) {
+                $output->writeln("<error> ERRO: A loja de ID: [$loja] não existe </>");
+                $output->writeln('<error> IDs de lojas existententes: </>');
+                $output->writeln("<error>$ids_existentes </>");
+                $output->writeln('<error> Exemplo: 0F5E4D </>');
+                return $this;
+            }
+        } else {
+            $output->writeln("<error> ERRO: ID da Loja não foi especificada </>");
+            $output->writeln("<error> bin/magento fhpdev:paintshot --cor <cor> --loja <id da loja></>");
+        }
+        //Efetua a colorização dos buttons
+        $this->mudacor($cor, $loja);
+        //Msg no terminal
+        $output->writeln('<info> Sucesso!!! </>');
+        $output->writeln("<info> Todos os botões da loja ID: [$loja] foram pintados com a cor [$cor] </>");              
+        return $this;
+    }
+}
+  //---------------------------------------------------
+  Criei uma arquivo app\design\frontend\Magento|luma\web\css\source\_extend.less
+   para processar  e rescrever estilos com a cor de botão trocada:
+   //---------------------------------------------------
+   @themeColor: #291a2d; //variable
+    @color-text: #cdaa6a; //variable
+    .btn-primary{
+        background-color: @themeColor;
+        color: @color-text;
+    }
+   //---------------------------------------------------
+   E um ProcessorInterface Fhpdev\Pintura\Console\Command\Proccessor.php
+   //----------------------------------------------------
+   <?php
+namespace Magento\Framework\Css\PreProcessor\Adapter\Less;
+ 
+ use Magento\Framework\App\State;
+ use Magento\Framework\Css\PreProcessor\File\Temporary;
+ use Magento\Framework\Phrase;
+ use Magento\Framework\View\Asset\ContentProcessorException;
+ use Magento\Framework\View\Asset\ContentProcessorInterface;
+ use Magento\Framework\View\Asset\File;
+ use Magento\Framework\View\Asset\Source;
+ use Psr\Log\LoggerInterface;   
+ 
+ class Processor implements ContentProcessorInterface {private $logger;private $appState;      private $assetSource;      private $temporaryFile;
+ 
+    public function __construct( LoggerInterface $logger,State $appState,
+                Source $assetSource, Temporary $temporaryFile ) {
+        $this->logger = $logger;
+        $this->appState = $appState;
+        $this->assetSource = $assetSource;
+        $this->temporaryFile = $temporaryFile;
+    }
+ 
+     public function processContent(File $asset){        //$array = [];        //$array['themeColor'] = '#ffffff';        //$array['color-text'] ='#000000';
+        $path = $asset->getPath();
+        try {
+            $parser = new \Less_Parser(
+                [
+                    'relativeUrls' => false,
+                    'compress' => $this->appState->getMode() !== State::MODE_DEVELOPER
+                ]
+            );
+
+            $content = $this->assetSource->getContent($asset);
+
+            if (trim($content) === '') {
+                return '';
+            }
+
+            $tmpFilePath = $this->temporaryFile->createFile($path, $content);
+
+            gc_disable();
+            $parser->parseFile($tmpFilePath, '');
+            //$parser->ModifyVars($array); //codigo da Pranjali Goel [webkul]
+            $content = $parser->getCss();
+            gc_enable();
+
+            if (trim($content) === '') {
+                $this->logger->warning('Parsed less file is empty: ' . $path);
+                return '';
+            } else {
+                return $content;
+            }
+        } catch (\Exception $e) {
+            throw new ContentProcessorException(new Phrase($e->getMessage()));
+        }
+     }
+ }
+   //----------------------------------------------------
+  1.14 Desabilitei  o cache pelo admin painel
+  1.15 executei no terminal:
+      bin/magento cache:clean ===> Limpeza do cahe
+      bin/magento setup:di:compile ===> compilar as as ijeções de dependencias
+      bin/magento config:set dev/css/use_css_critical_path 1 <== acelerar carga das paginas
+  1.16 Para ver se meu módulo aparece para o magento2
+      bin/magento module:status 
+  1.17 Habilitei meu modulo:
+      bin/magento module:enable --clear-static-content FHPdev_Paintshot 
+  1.18 Verifiquei se meu modulo esta ativo:
+      bin/magento module:status FHPdev_Pintura
+  1.19 Tentei executar o comando CLI:
+      bin/magento fhpdev:paintshot 
+      bin/magento fhpdev:paintshot --cor 0F5E4D
+      bin/magento fhpdev:paintshot --cor 0F5E4D2 --loja 10
+      bin/magento fhpdev:paintshot --cor 1X7U0Z8 --loja 10
+      bin/magento fhpdev:paintshot --cor 0F5E4D2 --loja V
+      bin/magento fhpdev:paintshot  --loja 10
