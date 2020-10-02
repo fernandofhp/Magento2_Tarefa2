@@ -7,7 +7,7 @@
             "homepage": "https://fernandofhp.online"
         }
     ],
-    "description": "Comando CLI para pintura de botões usando bin/magento for Magento 2",
+    "description": "Modulo de pintura de botões usando bin/magento no terminal",
     "require": {
         "php": "7.0.2|7.0.4|~7.0.6|~7.1.0",
         "magento/magento-composer-installer": "*"
