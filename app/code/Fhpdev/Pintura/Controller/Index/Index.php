@@ -1,22 +1,15 @@
 <?php 
 namespace Fhpdev\Pintura\Controller\Index;
-use Bss\Schema\Model\DataExampleFactory;
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\App\Action\Context;
+use Fhpdev\Pintura\Model\PinturaFactory;
 
 class Index extends \Magento\Framework\App\Action\Action{
     protected $_Pintura;
-    protected $resultRedirect;
-    public function __construct(\Magento\Framework\App\Action\Context $context,
-        \Fhpdev\Pintura\Model\DataExampleFactory  $Pintura,
-            \Magento\Framework\Controller\ResultFactory $result){
-        parent::__construct($context);
-        $this->_Pintura = $Pintura;
-        $this->resultRedirect = $result;
+    public function __construct(){
+        parent::__construct();
+        $this->_Pintura =  \Magento\Framework\App\ObjectManager::getInstance()
+                                ->get('Fhpdev\Pintura\Model\PinturaFactory');
     }
-	public function execute(){
-        $resultRedirect = $this->resultRedirect->create(ResultFactory::TYPE_REDIRECT);
-        $resultRedirect->setUrl($this->_redirect->getRefererUrl());
+	public function execute(){        
 		$model = $this->_Pintura->create();
 		$model->addData([
 			"cor" => 'C1C2C3',

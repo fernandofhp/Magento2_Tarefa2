@@ -1,9 +1,14 @@
 <?php 
     namespace Fhpdev\Pintura\Model\ResourceModel;
-    use \Magento\Framework\Model\ResourceModel\Db\AbstractDb;
-    class DataExample extends AbstractDb{
-        public function _construct(){
+    
+    class DataExample extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb{
+
+        public function _construct(\Magento\Framework\Model\ResourceModel\Db\Context $context){              
+            parent::__construct($context); 
             $this->_init("Pintura","id");
         }
+
+        // protected function _construct(){           
+        // }
     }
  ?>
