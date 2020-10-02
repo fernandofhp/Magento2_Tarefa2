@@ -3,6 +3,7 @@ namespace Fhpdev\Pintura\Setup;
 use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\DB\Ddl\Table;
+
 class UpgradeSchema implements \Magento\Framework\Setup\UpgradeSchemaInterface{
  
 	public function upgrade(SchemaSetupInterface $setup,ModuleContextInterface $context){
@@ -17,18 +18,14 @@ class UpgradeSchema implements \Magento\Framework\Setup\UpgradeSchemaInterface{
      * @param SchemaSetupInterface $setup
      * @return void
      */
-    private function addStatus(SchemaSetupInterface $setup)
-    {
-        $setup->getConnection()->addColumn(
-            $setup->getTable('Pintura'),
-            'status',
-            [
-                'type' => \Magento\Framework\DB\Ddl\Table::TYPE_SMALLINT,
-                'nullable' => true,
-                'default' => 1,
-                'comment' => 'Status'
-            ]
-        );
+    private function addStatus(SchemaSetupInterface $setup) {
+        $field_opts = [
+            'type' => \Magento\Framework\DB\Ddl\Table::TYPE_SMALLINT,
+            'nullable' => true,
+            'default' => 1,
+            'comment' => 'Status'
+        ];
+        $setup->getConnection()->addColumn( $setup->getTable('Pintura'), 'status', $field_opts);
     }
 }
 ?>

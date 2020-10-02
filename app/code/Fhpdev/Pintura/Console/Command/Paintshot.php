@@ -78,6 +78,7 @@ class Paintshot extends Command
         } else {
             $output->writeln("<error> ERRO: ID da Loja não foi especificada </>");
             $output->writeln("<error> bin/magento fhpdev:paintshot --cor <cor> --loja <id da loja></>");
+            return $this;
         }
         //Efetua a colorização dos buttons
         //$this->mudacor($cor, $loja);
