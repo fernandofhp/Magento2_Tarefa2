@@ -1,5 +1,6 @@
 <?php
 namespace Fhpdev\Pintura\Console\Command;
+use Fhpdev\Pintura\Model\Pintura;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
@@ -12,7 +13,7 @@ class Paintshot extends Command
     const LOJA = 'loja';     
     
     public function __construct() {
-        parent::__construct('fhpdev:paintshot');
+        parent::__construct('fhpdev:paintshot');        
     }       
 
     protected function configure(){        
@@ -34,6 +35,19 @@ class Paintshot extends Command
             ->setDescription('Comando CLI para pintura de botões usando bin/magento for Magento 2')
                 ->setDefinition($options);
         parent::configure();
+    }
+    
+    private function sobrepor_estilo_css(){
+        // 
+    }
+
+
+    private function colorir_bg_btn($cor, $id_loja){
+        $pintura = new Pintura;
+        // garavar a cor da loja        
+        $aux = $pintura->load(['id_loja' => $id_loja])
+                    ->update(['cor' => $cor])->save(); 
+        $this->sobrepor_estilo_css();          
     }
 
     protected function execute(InputInterface $input, OutputInterface $output){          
@@ -81,7 +95,13 @@ class Paintshot extends Command
             return $this;
         }
         //Efetua a colorização dos buttons
-        //$this->mudacor($cor, $loja);
+        try {
+            $this->colorir_bg_btn($cor, $loja);
+        } catch (\Throwable $th) {
+            $output->writeln("<error> ERRO: alteração de cor não executada </>");
+            $output->writeln("<error> erro relacionado com gravação dos dados no banco </>");
+            return $this;
+        }
         //Msg no terminal
         $output->writeln('<info> Sucesso!!! </>');
         $output->writeln("<info> Todos os botões da loja ID: [$loja] foram pintados com a cor [$cor] </>");              

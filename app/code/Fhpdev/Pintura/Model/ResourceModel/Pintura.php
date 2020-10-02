@@ -7,8 +7,5 @@
             parent::__construct($context); 
             $this->_init("Pintura","id");
         }
-
-        // protected function _construct(){           
-        // }
     }
  ?>
