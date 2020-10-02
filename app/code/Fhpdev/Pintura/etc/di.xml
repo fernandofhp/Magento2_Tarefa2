@@ -1,7 +1,12 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
     xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <!-- Comandos do console -->
+    <!-- Comandos do console 
+    <type name="Magento\Framework\Console\CommandList">        
+        <arguments>                          
+            <argument name="name" xsi:type="string">fhpdev:paintshot</argument>                     
+        </arguments>           
+    </type>-->
     <type name="Magento\Framework\Console\CommandList">        
         <arguments>                          
             <argument name="commands" xsi:type="array">
