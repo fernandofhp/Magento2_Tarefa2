@@ -41,13 +41,15 @@ class Paintshot extends Command
         // 
     }
 
-
     private function colorir_bg_btn($cor, $id_loja){
-        $pintura = new Pintura;
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $pintura = $objectManager->get('\Fhpdev\Pintura\Model\Pintura');
+        //$pintura = new Pintura;
         // garavar a cor da loja        
-        $aux = $pintura->load(['id_loja' => $id_loja])
+        $result = $pintura->load(['id_loja' => $id_loja])
                     ->update(['cor' => $cor])->save(); 
-        $this->sobrepor_estilo_css();          
+        $this->sobrepor_estilo_css(); 
+        return  $result;        
     }
 
     protected function execute(InputInterface $input, OutputInterface $output){          
@@ -99,7 +101,7 @@ class Paintshot extends Command
             $this->colorir_bg_btn($cor, $loja);
         } catch (\Throwable $th) {
             $output->writeln("<error> ERRO: alteração de cor não executada </>");
-            $output->writeln("<error> erro relacionado com gravação dos dados no banco </>");
+            $output->writeln("<error> $th </>");
             return $this;
         }
         //Msg no terminal
